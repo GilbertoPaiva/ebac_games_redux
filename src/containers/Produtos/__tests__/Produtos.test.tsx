@@ -4,6 +4,8 @@ import { rest } from 'msw'
 
 import Produtos from '..'
 import { renderizaComProvider } from '../../../utils/tests'
+import { configuraStore } from '../../../store'
+import api from '../../../services/api'
 
 const mocks = [
   {
@@ -68,5 +70,18 @@ describe('Testes para o container produtos', () => {
     waitFor(() => {
       expect(screen.getByText('Terror Game')).toBeInTheDocument()
     })
+  })
+
+  test('Deve exibir os produtos após o carregamento', async () => {
+    const store = configuraStore()
+
+    store.dispatch(api.util.upsertQueryData('getJogos', undefined, mocks))
+
+    renderizaComProvider(<Produtos />, { store })
+
+    const titulos = await screen.findAllByRole('heading', { level: 3 })
+
+    expect(titulos).toHaveLength(mocks.length)
+    expect(screen.queryByText('Carregando...')).not.toBeInTheDocument()
   })
 })
